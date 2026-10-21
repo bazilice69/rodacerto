@@ -2,13 +2,15 @@
    Estratégia: REDE PRIMEIRO (network-first).
    Sempre tenta baixar a versão nova quando há internet; usa o cache só
    como reserva quando está offline. Assim o app nunca "trava" numa versão velha. */
-const CACHE = 'rodacerto-v3';
+const CACHE = 'rodacerto-v4';
 const ARQUIVOS = [
   './',
   './index.html',
   './styles.css',
   './app.js',
-  './manifest.json'
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', e=>{

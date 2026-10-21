@@ -3,7 +3,7 @@
    Dados 100% no navegador (localStorage). Com backup em arquivo.
    ============================================================ */
 
-const APP_VERSAO = 'v12';  // marcador visível p/ sabermos qual build carregou
+const APP_VERSAO = 'v13';  // marcador visível p/ sabermos qual build carregou
 const STORE = 'rodacerto_v1';
 const LIC_STORE = 'rodacerto_lic_v1';
 
@@ -412,13 +412,30 @@ function renderCartoes(){
       </div>
       <div class="total-cartao">A pagar este mês: ${reais(totalCartao)}</div>
       <div class="parcelas">${parcelasHtml || '<span class="pinfo" style="padding:4px">Sem lançamentos. Adicione abaixo — parcelado (ex: Manutenção 3x) ou à vista (ex: Netflix, deixe o "x" vazio).</span>'}</div>
-      <div class="add-parcela">
-        <input type="text" class="pnome-in" placeholder="Compra (ex: Manutenção, Netflix)" data-cart="${c.id}" data-f="nome" />
-        <input type="number" class="pval-in" inputmode="decimal" placeholder="R$ da parcela" data-cart="${c.id}" data-f="valor" />
-        <input type="number" class="pvezes-in" inputmode="numeric" placeholder="x" data-cart="${c.id}" data-f="vezes" />
-        <button class="mini-add" data-addp="${c.id}">+</button>
+      <div class="nova-compra">
+        <div class="nc-titulo">+ Adicionar uma compra</div>
+        <label class="nc-label">O que você comprou?</label>
+        <input type="text" class="nc-input" placeholder="Ex: Manutenção, Netflix, mercado..." data-cart="${c.id}" data-f="nome" />
+
+        <label class="nc-label">É parcelado ou à vista?</label>
+        <div class="nc-tipo" data-cart="${c.id}">
+          <button type="button" class="nc-tipo-btn ativo" data-nctipo="avista" data-cart="${c.id}">À vista / mensal</button>
+          <button type="button" class="nc-tipo-btn" data-nctipo="parcelado" data-cart="${c.id}">Parcelado</button>
+        </div>
+
+        <div class="nc-valores">
+          <div class="nc-campo">
+            <label class="nc-label" id="lbl-valor-${c.id}">Valor (R$)</label>
+            <input type="number" class="nc-input" inputmode="decimal" placeholder="0,00" data-cart="${c.id}" data-f="valor" />
+          </div>
+          <div class="nc-campo nc-vezes-wrap hidden" data-cart="${c.id}">
+            <label class="nc-label">Em quantas vezes?</label>
+            <input type="number" class="nc-input" inputmode="numeric" placeholder="Ex: 3" data-cart="${c.id}" data-f="vezes" />
+          </div>
+        </div>
+
+        <button class="btn primary" style="width:100%;margin-top:10px" data-addp="${c.id}">Adicionar compra</button>
       </div>
-      <p class="add-dica">Parcelas (deixe <b>vazio</b> ou <b>1</b> se for à vista / mensal). O valor é o de <b>cada parcela</b>.</p>
       <button class="btn-pago ${pagoMes?'pago':'pendente'}" data-pagar="${c.id}">
         ${pagoMes?'✅ Paguei este mês':'Marcar: paguei este mês'}
       </button>`;
@@ -669,19 +686,40 @@ $('#lista-cartoes').addEventListener('click',e=>{
     }
     return;
   }
-  // adicionar parcela/compra ao cartão
+  // alternar À VISTA x PARCELADO dentro do formulário de compra
+  if(t.dataset.nctipo){
+    const wrap=t.closest('.nova-compra');
+    wrap.querySelectorAll('.nc-tipo-btn').forEach(b=>b.classList.remove('ativo'));
+    t.classList.add('ativo');
+    const parcelado = t.dataset.nctipo==='parcelado';
+    const vezesWrap = wrap.querySelector('.nc-vezes-wrap');
+    const lblValor = wrap.querySelector('[id^=lbl-valor-]');
+    if(parcelado){
+      vezesWrap.classList.remove('hidden');
+      if(lblValor) lblValor.textContent = 'Valor de CADA parcela (R$)';
+    }else{
+      vezesWrap.classList.add('hidden');
+      if(lblValor) lblValor.textContent = 'Valor (R$)';
+    }
+    return;
+  }
+
+  // adicionar compra ao cartão
   if(t.dataset.addp){
     const cid=t.dataset.addp;
     const c=dados.cartoes.find(x=>x.id===cid); if(!c) return;
-    const wrap=t.closest('.add-parcela');
+    const wrap=t.closest('.nova-compra');
     const nome=wrap.querySelector('[data-f=nome]').value.trim();
     const valor=numero(wrap.querySelector('[data-f=valor]').value);
-    const vezes=Math.max(1, Math.round(numero(wrap.querySelector('[data-f=vezes]').value))||1);
-    if(!nome || valor<=0){ toast('Preencha compra e valor da parcela'); return; }
+    const ehParcelado = wrap.querySelector('.nc-tipo-btn.ativo')?.dataset.nctipo==='parcelado';
+    let vezes=1;
+    if(ehParcelado) vezes=Math.max(1, Math.round(numero(wrap.querySelector('[data-f=vezes]').value))||1);
+    if(!nome){ toast('Escreva o que você comprou'); return; }
+    if(valor<=0){ toast('Preencha o valor'); return; }
     c.parcelas=c.parcelas||[];
     c.parcelas.push({id:uid(),nome,valor,total:vezes,restantes:vezes});
     render();
-    toast(vezes>1 ? `${nome}: ${vezes}x de ${reais(valor)}` : `${nome}: ${reais(valor)} (à vista)`);
+    toast(vezes>1 ? `${nome}: ${vezes}x de ${reais(valor)}` : `${nome}: ${reais(valor)}`);
     return;
   }
 });

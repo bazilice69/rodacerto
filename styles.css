@@ -271,10 +271,23 @@ input::placeholder{color:#5b6b85}
 .parcela .pinfo{font-size:11px;color:var(--txt-fraco)}
 .parcela .pval{font-weight:700;margin-right:8px}
 .parcela .px{color:var(--vermelho);cursor:pointer;font-weight:800}
-.cartao .add-parcela{display:flex;gap:6px;margin-top:8px}
-.cartao .add-parcela input{padding:9px 10px;font-size:14px}
-.cartao .add-parcela .pnome-in{flex:2}
-.cartao .add-parcela .pval-in,.cartao .add-parcela .pvezes-in{flex:1;min-width:0}
+/* formulário de nova compra no cartão (empilhado, limpo) */
+.nova-compra{
+  margin-top:12px;background:rgba(0,0,0,.22);border:1px solid var(--linha);
+  border-radius:12px;padding:14px;
+}
+.nc-titulo{font-size:13px;font-weight:800;color:var(--primaria);margin-bottom:10px}
+.nc-label{display:block;font-size:12px;color:var(--txt-fraco);margin:10px 0 5px}
+.nc-label:first-of-type{margin-top:0}
+.nc-input{width:100%;background:var(--card2);border:1px solid var(--linha);color:var(--txt);border-radius:10px;padding:11px 12px;font-size:15px}
+.nc-tipo{display:flex;gap:8px}
+.nc-tipo-btn{
+  flex:1;background:var(--card2);border:1px solid var(--linha);color:var(--txt-fraco);
+  border-radius:10px;padding:10px 6px;font-size:13px;font-weight:700;cursor:pointer;
+}
+.nc-tipo-btn.ativo{background:var(--primaria);color:#fff;border-color:var(--primaria)}
+.nc-valores{display:flex;gap:10px;align-items:flex-end}
+.nc-campo{flex:1;min-width:0}
 .btn-pago{
   width:100%;margin-top:10px;border:none;border-radius:10px;padding:11px;
   font-weight:700;font-size:14px;cursor:pointer;
@@ -400,6 +413,4 @@ input::placeholder{color:#5b6b85}
 .magico-linha span{display:block;font-size:11px;color:rgba(255,255,255,.75);margin-bottom:3px}
 .magico-linha strong{font-size:18px;color:#fff}
 
-/* dica de lançamento de cartão */
-.add-dica{font-size:11px;color:var(--txt-fraco);line-height:1.45;margin-top:7px}
-.add-dica b{color:var(--txt)}
+

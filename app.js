@@ -3,7 +3,7 @@
    Dados 100% no navegador (localStorage). Com backup em arquivo.
    ============================================================ */
 
-const APP_VERSAO = 'v9';   // marcador visível p/ sabermos qual build carregou
+const APP_VERSAO = 'v10';  // marcador visível p/ sabermos qual build carregou
 const STORE = 'rodacerto_v1';
 const LIC_STORE = 'rodacerto_lic_v1';
 

@@ -37,8 +37,11 @@ body{
   box-shadow:0 4px 18px rgba(0,0,0,.28);
   border-bottom:1px solid rgba(0,0,0,.06);
 }
-.brand{display:flex;align-items:center;gap:13px;max-width:620px;margin:0 auto}
-.logo-img{height:40px;width:auto;display:block}
+.brand{display:flex;align-items:center;gap:10px;max-width:620px;margin:0 auto;min-width:0}
+.logo-img{
+  height:36px;width:auto;max-width:78%;
+  object-fit:contain;display:block;flex:0 1 auto;
+}
 .topbar h1{font-size:21px;font-weight:800;letter-spacing:.2px;line-height:1.1}
 .topbar small{color:rgba(255,255,255,.85);font-size:12px;font-weight:500}
 

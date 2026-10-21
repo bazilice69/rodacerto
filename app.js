@@ -239,23 +239,28 @@ function totalMes(){ return dados.ganhos.filter(g=>g.data.startsWith(mesAtual())
    RENDERIZAÇÃO
    ============================================================ */
 function render(){
-  renderHoje();
-  renderConfig();
-  renderCorridaInfo();
-  renderHistorico();
-  renderAgenda();
+  // cada bloco é isolado: se um falhar, os outros continuam funcionando
+  try{ renderHoje(); }catch(e){ console.error('renderHoje',e); }
+  try{ renderConfig(); }catch(e){ console.error('renderConfig',e); }
+  try{ renderCorridaInfo(); }catch(e){ console.error('renderCorridaInfo',e); }
+  try{ renderHistorico(); }catch(e){ console.error('renderHistorico',e); }
+  try{ renderAgenda(); }catch(e){ console.error('renderAgenda',e); }
   salvar();
 }
 
 // Frase motivacional aleatória (evita repetir a última)
 let ultimaFrase = -1;
 function novaFrase(){
+  const el = $('#frase-texto');
+  if(!el) return;
   let i;
   do { i = Math.floor(Math.random()*FRASES.length); }
   while(FRASES.length>1 && i===ultimaFrase);
   ultimaFrase = i;
-  const el = $('#frase-texto');
-  if(el){ el.style.opacity=0; setTimeout(()=>{ el.textContent=FRASES[i]; el.style.opacity=1; }, 150); }
+  // define o texto IMEDIATAMENTE (garante que aparece); fade é só um detalhe
+  el.textContent = FRASES[i];
+  el.style.opacity = 0;
+  requestAnimationFrame(()=>{ el.style.opacity = 1; });
 }
 
 function renderHoje(){
@@ -778,17 +783,23 @@ $('#btn-copiar-id').addEventListener('click',()=>{
 // Registrar service worker (funciona offline / instalável) e
 // recarregar automaticamente quando houver uma versão nova publicada.
 if('serviceWorker' in navigator){
+  let recarregou = false;
+  // quando o SW que controla a página mudar (nova versão assumiu), recarrega 1x
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(recarregou) return;
+    recarregou = true;
+    location.reload();
+  });
+
   navigator.serviceWorker.register('sw.js').then(reg=>{
-    // procura atualização sempre que o app abre
     reg.update().catch(()=>{});
     reg.addEventListener('updatefound',()=>{
       const novo = reg.installing;
       if(!novo) return;
       novo.addEventListener('statechange',()=>{
-        // nova versão instalada e já existe uma controlando -> recarrega
         if(novo.state==='installed' && navigator.serviceWorker.controller){
-          toast('Atualizando para a nova versão...');
-          setTimeout(()=>location.reload(), 800);
+          toast('Atualizando...');
+          // o novo SW já chamou skipWaiting; o controllerchange acima recarrega
         }
       });
     });

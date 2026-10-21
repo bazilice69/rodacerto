@@ -212,3 +212,58 @@ input::placeholder{color:#5b6b85}
 
 .btn-copiar{background:var(--primaria);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer}
 .btn.whatsapp{background:#25D366;display:block;text-decoration:none;text-align:center;margin-bottom:6px}
+
+/* ============ DESPESAS POR TIPO ============ */
+.tipo-seletor{display:flex;gap:6px;margin-bottom:10px}
+.tipo-btn{
+  flex:1;background:var(--card2);border:1px solid var(--linha);color:var(--txt-fraco);
+  border-radius:10px;padding:10px 4px;font-size:13px;font-weight:700;cursor:pointer;
+}
+.tipo-btn.ativo{background:var(--primaria);color:#fff;border-color:var(--primaria)}
+.tipo-explica{font-size:12px;color:var(--txt-fraco);margin-bottom:10px;line-height:1.4}
+
+.sugestoes{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+.sugestao{
+  background:transparent;border:1px dashed var(--primaria);color:var(--primaria);
+  border-radius:999px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer;
+}
+.sugestao:active{background:rgba(20,184,166,.15)}
+
+.resumo-tipos{display:flex;gap:8px;margin-top:14px}
+.resumo-tipos div{
+  flex:1;background:var(--card2);border-radius:10px;padding:10px 6px;text-align:center;
+}
+.resumo-tipos span{display:block;font-size:11px;color:var(--txt-fraco);margin-bottom:3px}
+.resumo-tipos strong{font-size:14px}
+
+/* ============ CARTÕES ============ */
+.lista-cartoes{display:flex;flex-direction:column;gap:12px}
+.cartao{
+  background:linear-gradient(135deg,#1e293b,#0f1b33);
+  border:1px solid var(--linha);border-radius:14px;padding:14px;
+}
+.cartao .cab{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px}
+.cartao .dono{font-size:15px;font-weight:800}
+.cartao .venc{font-size:12px;color:var(--txt-fraco)}
+.cartao .x{color:var(--vermelho);cursor:pointer;font-weight:800;font-size:18px;padding:0 4px}
+.cartao .total-cartao{font-size:13px;color:var(--amarelo);font-weight:700;margin:6px 0}
+.cartao .parcelas{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.parcela{
+  display:flex;justify-content:space-between;align-items:center;
+  background:rgba(0,0,0,.25);border-radius:8px;padding:8px 10px;font-size:13px;
+}
+.parcela .pnome{color:var(--txt)}
+.parcela .pinfo{font-size:11px;color:var(--txt-fraco)}
+.parcela .pval{font-weight:700;margin-right:8px}
+.parcela .px{color:var(--vermelho);cursor:pointer;font-weight:800}
+.cartao .add-parcela{display:flex;gap:6px;margin-top:8px}
+.cartao .add-parcela input{padding:9px 10px;font-size:14px}
+.cartao .add-parcela .pnome-in{flex:2}
+.cartao .add-parcela .pval-in,.cartao .add-parcela .pvezes-in{flex:1;min-width:0}
+.btn-pago{
+  width:100%;margin-top:10px;border:none;border-radius:10px;padding:11px;
+  font-weight:700;font-size:14px;cursor:pointer;
+}
+.btn-pago.pendente{background:rgba(234,179,8,.18);color:var(--amarelo);border:1px solid var(--amarelo)}
+.btn-pago.pago{background:rgba(34,197,94,.18);color:var(--verde);border:1px solid var(--verde)}
+.mini-add{background:var(--primaria);color:#fff;border:none;border-radius:8px;padding:0 14px;font-weight:800;cursor:pointer}

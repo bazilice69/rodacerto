@@ -122,15 +122,52 @@
     <!-- ============ ABA CONFIG ============ -->
     <section class="tab hidden" id="tab-config">
       <div class="card">
-        <h2>🏠 Despesas da casa (por mês)</h2>
-        <p class="dica">Aluguel, água, luz, internet, cartão, comida... tudo que sai todo mês.</p>
+        <h2>🏠 Minhas despesas</h2>
+        <p class="dica">Separe por tipo pra conta fechar certa. Toque numa sugestão pra adicionar rápido.</p>
+
+        <!-- seletor de tipo -->
+        <div class="tipo-seletor">
+          <button class="tipo-btn ativo" data-tipo="fixa">📌 Fixas</button>
+          <button class="tipo-btn" data-tipo="variavel">🔁 Variáveis</button>
+          <button class="tipo-btn" data-tipo="avulsa">⚡ Avulsas</button>
+        </div>
+        <p class="tipo-explica" id="tipo-explica"></p>
+
+        <!-- sugestões prontas -->
+        <div class="sugestoes" id="sugestoes"></div>
+
+        <!-- lista de despesas do tipo atual -->
         <div id="lista-despesas" class="lista-despesas"></div>
+
+        <!-- adicionar manual -->
         <div class="linha-input">
           <input type="text" id="d-nome" placeholder="Nome (ex: Luz)" />
           <input type="number" id="d-valor" inputmode="decimal" placeholder="R$" />
           <button class="btn primary" id="btn-add-despesa">+</button>
         </div>
-        <div class="total-linha">Total do mês: <strong id="total-despesas">R$ 0</strong></div>
+
+        <div class="resumo-tipos">
+          <div><span>📌 Fixas</span><strong id="tot-fixa">R$ 0</strong></div>
+          <div><span>🔁 Variáveis</span><strong id="tot-variavel">R$ 0</strong></div>
+          <div><span>⚡ Avulsas</span><strong id="tot-avulsa">R$ 0</strong></div>
+        </div>
+        <div class="total-linha">Total de despesas: <strong id="total-despesas">R$ 0</strong></div>
+      </div>
+
+      <!-- CARTÕES -->
+      <div class="card">
+        <h2>💳 Cartões</h2>
+        <p class="dica">Cadastre os cartões que você paga (inclusive de outras pessoas). Marque quando pagar no mês.</p>
+
+        <div id="lista-cartoes" class="lista-cartoes"></div>
+
+        <div class="linha-input" style="margin-top:12px">
+          <input type="text" id="cart-dono" placeholder="Nome (ex: Cartão do Sogro)" />
+          <input type="number" id="cart-venc" inputmode="numeric" placeholder="Vence dia" />
+          <button class="btn primary" id="btn-add-cartao">+</button>
+        </div>
+
+        <div class="total-linha">Cartões a pagar este mês: <strong id="total-cartoes">R$ 0</strong></div>
       </div>
 
       <div class="card">

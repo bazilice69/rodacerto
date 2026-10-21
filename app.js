@@ -117,12 +117,22 @@ function montarTelaBloqueio(){
 // ---------- Estado padrão ----------
 function estadoPadrao(){
   return {
-    despesas: [],          // [{id, nome, valor}]
+    // despesas por tipo: 'fixa' | 'variavel' | 'avulsa'
+    despesas: [],          // [{id, nome, valor, tipo}]
+    // cartões por pessoa, com parcelas e controle de pagamento do mês
+    cartoes: [],           // [{id, dono, vencimento, parcelas:[{id,nome,valor,total,paga,restantes}], pago:{'YYYY-MM':true}}]
     carro: { combustivel:0, consumo:0, manutencao:0 },
     meta: { dias:24, kmDia:200, lucro:0 },
     ganhos: []             // [{id, data:'YYYY-MM-DD', valor}]
   };
 }
+
+// Sugestões prontas por tipo (o motorista toca e já adiciona)
+const SUGESTOES = {
+  fixa:    ['Aluguel','Mensalidade do carro','Internet','Escola das crianças','Seguro do carro','Plano de saúde'],
+  variavel:['Combustível','Comida / mercado','Energia (luz)','Água','Gás','Telefone'],
+  avulsa:  ['Manutenção','Pneu','Troca de óleo','Multa','Peça do carro','Imprevisto']
+};
 
 let dados = carregar();
 
@@ -151,7 +161,26 @@ function toast(msg){
 }
 
 // ---------- CÁLCULOS PRINCIPAIS ----------
-function totalDespesas(){ return dados.despesas.reduce((s,d)=>s+numero(d.valor),0); }
+// Soma das despesas (opcionalmente filtrando por tipo)
+function somaDespesas(tipo){
+  return dados.despesas
+    .filter(d=> !tipo || d.tipo===tipo)
+    .reduce((s,d)=>s+numero(d.valor),0);
+}
+
+// Quanto de parcela de cartão cai ESTE mês (só parcelas que ainda têm valor a pagar)
+function totalCartoesMes(){
+  let total = 0;
+  (dados.cartoes||[]).forEach(c=>{
+    (c.parcelas||[]).forEach(p=>{
+      if(numero(p.restantes) > 0) total += numero(p.valor);
+    });
+  });
+  return total;
+}
+
+// Total geral de despesas do mês = despesas (todos os tipos) + parcelas de cartão do mês
+function totalDespesas(){ return somaDespesas() + totalCartoesMes(); }
 
 // Custo por km rodado (só o combustível + outros custos por km)
 function custoPorKm(){
@@ -231,17 +260,17 @@ function renderHoje(){
   });
 }
 
+// tipo de despesa selecionado na aba Config
+let tipoAtivo = 'fixa';
+const EXPLICA = {
+  fixa:'Gastos que vêm TODO mês com o mesmo valor (aluguel, parcela do carro, internet...).',
+  variavel:'Gastos de todo mês que mudam de valor (combustível, mercado, luz...).',
+  avulsa:'Gastos que caíram SÓ este mês (manutenção, pneu, imprevisto...).'
+};
+
 function renderConfig(){
-  // despesas
-  const lista=$('#lista-despesas'); lista.innerHTML='';
-  dados.despesas.forEach(d=>{
-    const el=document.createElement('div'); el.className='item';
-    el.innerHTML=`<span class="nome">${d.nome}</span>
-      <span><span class="val">${reais(d.valor)}</span>
-      <span class="x" data-deld="${d.id}">×</span></span>`;
-    lista.appendChild(el);
-  });
-  $('#total-despesas').textContent = reais(totalDespesas());
+  renderDespesas();
+  renderCartoes();
 
   // carro
   $('#car-combustivel').value = dados.carro.combustivel||'';
@@ -253,6 +282,103 @@ function renderConfig(){
   $('#meta-dias').value = dados.meta.dias||'';
   $('#meta-km-dia').value = dados.meta.kmDia||'';
   $('#meta-lucro').value = dados.meta.lucro||'';
+}
+
+function renderDespesas(){
+  // botões de tipo
+  document.querySelectorAll('.tipo-btn').forEach(b=>{
+    b.classList.toggle('ativo', b.dataset.tipo===tipoAtivo);
+  });
+  $('#tipo-explica').textContent = EXPLICA[tipoAtivo];
+
+  // sugestões (esconde as que já foram adicionadas nesse tipo)
+  const jaTem = dados.despesas.filter(d=>d.tipo===tipoAtivo).map(d=>d.nome.toLowerCase());
+  const sug = $('#sugestoes'); sug.innerHTML='';
+  SUGESTOES[tipoAtivo].filter(s=>!jaTem.includes(s.toLowerCase())).forEach(nome=>{
+    const b=document.createElement('button'); b.className='sugestao';
+    b.textContent='+ '+nome; b.dataset.sug=nome;
+    sug.appendChild(b);
+  });
+
+  // lista do tipo atual
+  const lista=$('#lista-despesas'); lista.innerHTML='';
+  const doTipo = dados.despesas.filter(d=>d.tipo===tipoAtivo);
+  if(doTipo.length===0){
+    lista.innerHTML='<p class="vazio" style="padding:10px">Nada aqui ainda. Toque numa sugestão acima.</p>';
+  }
+  doTipo.forEach(d=>{
+    const el=document.createElement('div'); el.className='item';
+    el.innerHTML=`<span class="nome">${d.nome}</span>
+      <span><span class="val">${reais(d.valor)}</span>
+      <span class="x" data-deld="${d.id}">×</span></span>`;
+    lista.appendChild(el);
+  });
+
+  // totais por tipo
+  $('#tot-fixa').textContent = reais(somaDespesas('fixa'));
+  $('#tot-variavel').textContent = reais(somaDespesas('variavel'));
+  $('#tot-avulsa').textContent = reais(somaDespesas('avulsa'));
+  $('#total-despesas').textContent = reais(totalDespesas());
+}
+
+function renderCartoes(){
+  const cont=$('#lista-cartoes'); cont.innerHTML='';
+  const mes = mesAtual();
+  (dados.cartoes||[]).forEach(c=>{
+    const totalCartao = (c.parcelas||[]).filter(p=>numero(p.restantes)>0).reduce((s,p)=>s+numero(p.valor),0);
+    const pagoMes = c.pago && c.pago[mes];
+    const el=document.createElement('div'); el.className='cartao';
+
+    let parcelasHtml = (c.parcelas||[]).map(p=>{
+      const rest = numero(p.restantes);
+      const total = numero(p.total);
+      const pagas = total - rest;
+      // Mostra claramente A QUE COMPRA a parcela se refere e em que ponto está.
+      let info;
+      if(rest<=0){
+        info = `✅ quitada (${total}x — ${p.nome})`;
+      }else if(total>1){
+        info = `${pagas+1}ª de ${total}x — ${p.nome} • faltam ${rest}`;
+      }else{
+        info = `à vista — ${p.nome}`;
+      }
+      return `<div class="parcela">
+        <span>
+          <span class="pnome">${p.nome}${total>1?` <small style="color:#92a1bd">(${total}x)</small>`:''}</span><br>
+          <span class="pinfo">${info}</span>
+        </span>
+        <span>
+          <span class="pval" style="color:${rest>0?'#fff':'#5b6b85'}">${reais(p.valor)}</span>
+          <span class="px" data-delp="${c.id}:${p.id}">×</span>
+        </span>
+      </div>`;
+    }).join('');
+
+    el.innerHTML = `
+      <div class="cab">
+        <div>
+          <div class="dono">💳 ${c.dono}</div>
+          <div class="venc">${c.vencimento?('vence dia '+c.vencimento):'sem vencimento'}</div>
+        </div>
+        <span class="x" data-delc="${c.id}">×</span>
+      </div>
+      <div class="total-cartao">A pagar este mês: ${reais(totalCartao)}</div>
+      <div class="parcelas">${parcelasHtml || '<span class="pinfo" style="padding:4px">Sem lançamentos. Adicione abaixo (ex: Manutenção, 3x).</span>'}</div>
+      <div class="add-parcela">
+        <input type="text" class="pnome-in" placeholder="Compra (ex: Manutenção)" data-cart="${c.id}" data-f="nome" />
+        <input type="number" class="pval-in" inputmode="decimal" placeholder="R$ parcela" data-cart="${c.id}" data-f="valor" />
+        <input type="number" class="pvezes-in" inputmode="numeric" placeholder="x" data-cart="${c.id}" data-f="vezes" />
+        <button class="mini-add" data-addp="${c.id}">+</button>
+      </div>
+      <button class="btn-pago ${pagoMes?'pago':'pendente'}" data-pagar="${c.id}">
+        ${pagoMes?'✅ Paguei este mês':'Marcar: paguei este mês'}
+      </button>`;
+    cont.appendChild(el);
+  });
+  if((dados.cartoes||[]).length===0){
+    cont.innerHTML='<p class="vazio">Nenhum cartão ainda. Cadastre abaixo.</p>';
+  }
+  $('#total-cartoes').textContent = reais(totalCartoesMes());
 }
 
 function renderCorridaInfo(){
@@ -325,12 +451,28 @@ $('#lista-ganhos').addEventListener('click',e=>{
   dados.ganhos=dados.ganhos.filter(g=>g.id!==id); render();
 });
 
-// Despesas
+// Trocar tipo de despesa (Fixa / Variável / Avulsa)
+document.querySelectorAll('.tipo-btn').forEach(b=>{
+  b.addEventListener('click',()=>{ tipoAtivo=b.dataset.tipo; renderDespesas(); });
+});
+
+// Adicionar despesa pelas SUGESTÕES (toque rápido)
+$('#sugestoes').addEventListener('click',e=>{
+  const nome=e.target.dataset.sug; if(!nome) return;
+  const v=prompt(`Quanto é "${nome}" por mês? (R$)`);
+  if(v===null) return;
+  const valor=numero(v);
+  if(valor<=0){ toast('Valor inválido'); return; }
+  dados.despesas.push({id:uid(),nome,valor,tipo:tipoAtivo});
+  render(); toast(nome+' adicionado');
+});
+
+// Adicionar despesa manual
 $('#btn-add-despesa').addEventListener('click',()=>{
   const nome=$('#d-nome').value.trim();
   const valor=numero($('#d-valor').value);
   if(!nome || valor<=0){ toast('Preencha nome e valor'); return; }
-  dados.despesas.push({id:uid(),nome,valor});
+  dados.despesas.push({id:uid(),nome,valor,tipo:tipoAtivo});
   $('#d-nome').value=''; $('#d-valor').value='';
   render(); toast('Despesa adicionada');
 });
@@ -338,6 +480,69 @@ $('#d-valor').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#btn-add-de
 $('#lista-despesas').addEventListener('click',e=>{
   const id=e.target.dataset.deld; if(!id) return;
   dados.despesas=dados.despesas.filter(d=>d.id!==id); render();
+});
+
+/* ---------- CARTÕES ---------- */
+// adicionar cartão
+$('#btn-add-cartao').addEventListener('click',()=>{
+  const dono=$('#cart-dono').value.trim();
+  const venc=numero($('#cart-venc').value);
+  if(!dono){ toast('Dê um nome ao cartão'); return; }
+  dados.cartoes=dados.cartoes||[];
+  dados.cartoes.push({id:uid(),dono,vencimento:venc||'',parcelas:[],pago:{}});
+  $('#cart-dono').value=''; $('#cart-venc').value='';
+  render(); toast('Cartão adicionado 💳');
+});
+
+// cliques dentro da lista de cartões (delegação): excluir cartão, excluir parcela,
+// adicionar parcela, marcar pago
+$('#lista-cartoes').addEventListener('click',e=>{
+  const t=e.target;
+
+  // excluir cartão
+  if(t.dataset.delc){
+    if(confirm('Excluir este cartão e tudo dele?')){
+      dados.cartoes=dados.cartoes.filter(c=>c.id!==t.dataset.delc); render();
+    }
+    return;
+  }
+  // excluir parcela
+  if(t.dataset.delp){
+    const [cid,pid]=t.dataset.delp.split(':');
+    const c=dados.cartoes.find(x=>x.id===cid);
+    if(c){ c.parcelas=c.parcelas.filter(p=>p.id!==pid); render(); }
+    return;
+  }
+  // marcar pago este mês
+  if(t.dataset.pagar){
+    const c=dados.cartoes.find(x=>x.id===t.dataset.pagar);
+    if(!c) return;
+    const mes=mesAtual(); c.pago=c.pago||{};
+    if(c.pago[mes]){
+      // desmarcar
+      delete c.pago[mes]; render(); toast('Desmarcado');
+    }else{
+      // marcar pago: desconta 1 parcela de cada compra ativa
+      c.pago[mes]=true;
+      (c.parcelas||[]).forEach(p=>{ if(numero(p.restantes)>0) p.restantes=numero(p.restantes)-1; });
+      render(); toast('✅ Pago! Parcelas atualizadas');
+    }
+    return;
+  }
+  // adicionar parcela/compra ao cartão
+  if(t.dataset.addp){
+    const cid=t.dataset.addp;
+    const c=dados.cartoes.find(x=>x.id===cid); if(!c) return;
+    const wrap=t.closest('.add-parcela');
+    const nome=wrap.querySelector('[data-f=nome]').value.trim();
+    const valor=numero(wrap.querySelector('[data-f=valor]').value);
+    const vezes=Math.max(1, Math.round(numero(wrap.querySelector('[data-f=vezes]').value))||1);
+    if(!nome || valor<=0){ toast('Preencha compra e valor da parcela'); return; }
+    c.parcelas=c.parcelas||[];
+    c.parcelas.push({id:uid(),nome,valor,total:vezes,restantes:vezes});
+    render(); toast(`${nome}: ${vezes}x de ${reais(valor)}`);
+    return;
+  }
 });
 
 // Salvar config (carro + meta)

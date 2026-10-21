@@ -3,7 +3,7 @@
    Dados 100% no navegador (localStorage). Com backup em arquivo.
    ============================================================ */
 
-const APP_VERSAO = 'v8';   // marcador visível p/ sabermos qual build carregou
+const APP_VERSAO = 'v9';   // marcador visível p/ sabermos qual build carregou
 const STORE = 'rodacerto_v1';
 const LIC_STORE = 'rodacerto_lic_v1';
 
@@ -876,8 +876,8 @@ $('#cal-grade').addEventListener('click',e=>{
   renderAgenda();
 });
 
-// Mostra a versão carregada no subtítulo do topo (ajuda a saber se atualizou)
-(function(){ const s=$('#subtitulo'); if(s) s.textContent = 'seu lucro na mão · '+APP_VERSAO; })();
+// Mostra a versão carregada no topo (ajuda a saber se atualizou)
+(function(){ const c=$('#versao-chip'); if(c) c.textContent = APP_VERSAO; })();
 
 // Primeira renderização
 render();

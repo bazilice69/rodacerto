@@ -1,0 +1,6 @@
+.kiro/
+.agent-browser/
+.abhome/
+.abtmp/
+node_modules/
+*.log

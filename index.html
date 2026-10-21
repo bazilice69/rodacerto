@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f766e" />
+  <title>RodaCerto — seu lucro na mão</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- CABEÇALHO -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🚗</span>
+      <div>
+        <h1>RodaCerto</h1>
+        <small id="subtitulo">seu lucro na mão</small>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO DAS ABAS -->
+  <main id="app">
+
+    <!-- ============ ABA HOJE ============ -->
+    <section class="tab" id="tab-hoje">
+      <div class="card destaque" id="card-meta">
+        <div class="meta-topo">
+          <span class="rotulo">Meta de hoje</span>
+          <span class="data" id="data-hoje"></span>
+        </div>
+        <div class="meta-valor">
+          <span id="meta-feito">R$ 0</span>
+          <span class="de">de <strong id="meta-total">R$ 0</strong></span>
+        </div>
+        <div class="barra"><div class="barra-preenche" id="barra-hoje"></div></div>
+        <div class="meta-falta" id="meta-falta">Configure suas despesas para ver sua meta.</div>
+      </div>
+
+      <div class="card">
+        <h2>Lançar ganho de hoje</h2>
+        <p class="dica">Registre o que você já fez (pode lançar várias vezes ao longo do dia).</p>
+        <div class="linha-input">
+          <div class="campo">
+            <label>Valor ganho (R$)</label>
+            <input type="number" id="in-ganho" inputmode="decimal" placeholder="Ex: 85,50" />
+          </div>
+          <button class="btn primary" id="btn-add-ganho">+ Lançar</button>
+        </div>
+        <div id="lista-ganhos" class="lista-ganhos"></div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card mini">
+          <span class="mini-rotulo">Ganho hoje</span>
+          <strong class="mini-valor verde" id="kpi-hoje">R$ 0</strong>
+        </div>
+        <div class="card mini">
+          <span class="mini-rotulo">Corridas hoje</span>
+          <strong class="mini-valor" id="kpi-corridas">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ABA CORRIDA (calculadora) ============ -->
+    <section class="tab hidden" id="tab-corrida">
+      <div class="card">
+        <h2>Vale a pena essa corrida?</h2>
+        <p class="dica">Digite o valor e a distância que apareceram no app (Uber, 99...).</p>
+
+        <div class="campo">
+          <label>Valor da corrida (R$)</label>
+          <input type="number" id="c-valor" inputmode="decimal" placeholder="Ex: 14,90" />
+        </div>
+        <div class="campo">
+          <label>Distância do passageiro (km)</label>
+          <input type="number" id="c-km" inputmode="decimal" placeholder="Ex: 8" />
+        </div>
+        <div class="campo">
+          <label>Km até buscar o cliente (opcional)</label>
+          <input type="number" id="c-deslocamento" inputmode="decimal" placeholder="Ex: 3" />
+        </div>
+
+        <button class="btn primary grande" id="btn-avaliar">Avaliar corrida</button>
+
+        <div id="resultado-corrida" class="resultado hidden"></div>
+      </div>
+
+      <div class="card info">
+        <p>Seu mínimo aceitável é <strong id="corrida-minimo">R$ —</strong> por km rodado.</p>
+        <small>Esse número vem das suas despesas e do custo do carro (aba Config).</small>
+      </div>
+    </section>
+
+    <!-- ============ ABA HISTÓRICO ============ -->
+    <section class="tab hidden" id="tab-historico">
+      <div class="card">
+        <h2>Resumo do mês</h2>
+        <div class="grid-2">
+          <div class="mini-box">
+            <span class="mini-rotulo">Ganho no mês</span>
+            <strong class="mini-valor verde" id="mes-ganho">R$ 0</strong>
+          </div>
+          <div class="mini-box">
+            <span class="mini-rotulo">Meta do mês</span>
+            <strong class="mini-valor" id="mes-meta">R$ 0</strong>
+          </div>
+        </div>
+        <div class="barra"><div class="barra-preenche" id="barra-mes"></div></div>
+        <div class="meta-falta" id="mes-falta"></div>
+      </div>
+
+      <div class="card">
+        <h2>Dia a dia</h2>
+        <div id="lista-historico" class="lista-historico">
+          <p class="vazio">Nenhum ganho registrado ainda.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ABA CONFIG ============ -->
+    <section class="tab hidden" id="tab-config">
+      <div class="card">
+        <h2>🏠 Despesas da casa (por mês)</h2>
+        <p class="dica">Aluguel, água, luz, internet, cartão, comida... tudo que sai todo mês.</p>
+        <div id="lista-despesas" class="lista-despesas"></div>
+        <div class="linha-input">
+          <input type="text" id="d-nome" placeholder="Nome (ex: Luz)" />
+          <input type="number" id="d-valor" inputmode="decimal" placeholder="R$" />
+          <button class="btn primary" id="btn-add-despesa">+</button>
+        </div>
+        <div class="total-linha">Total do mês: <strong id="total-despesas">R$ 0</strong></div>
+      </div>
+
+      <div class="card">
+        <h2>🚗 Custo do carro</h2>
+        <div class="campo">
+          <label>Preço do combustível (R$ por litro)</label>
+          <input type="number" id="car-combustivel" inputmode="decimal" placeholder="Ex: 5,89" />
+        </div>
+        <div class="campo">
+          <label>Consumo do carro (km por litro)</label>
+          <input type="number" id="car-consumo" inputmode="decimal" placeholder="Ex: 11" />
+        </div>
+        <div class="campo">
+          <label>Outros custos por km (manutenção, óleo, pneu...)</label>
+          <input type="number" id="car-manutencao" inputmode="decimal" placeholder="Ex: 0,30" />
+        </div>
+        <div class="total-linha">Custo por km rodado: <strong id="custo-km">R$ 0,00</strong></div>
+      </div>
+
+      <div class="card">
+        <h2>🎯 Sua meta</h2>
+        <div class="campo">
+          <label>Dias que você trabalha por mês</label>
+          <input type="number" id="meta-dias" inputmode="numeric" placeholder="Ex: 24" />
+        </div>
+        <div class="campo">
+          <label>Km que você roda por dia (em média)</label>
+          <input type="number" id="meta-km-dia" inputmode="decimal" placeholder="Ex: 200" />
+        </div>
+        <div class="campo">
+          <label>Quanto quer de lucro por mês (além das despesas)</label>
+          <input type="number" id="meta-lucro" inputmode="decimal" placeholder="Ex: 1500" />
+        </div>
+        <button class="btn primary grande" id="btn-salvar-config">Salvar e calcular</button>
+      </div>
+
+      <div class="card">
+        <h2>💾 Backup</h2>
+        <p class="dica">Seus dados ficam só no seu celular. Faça backup para não perder.</p>
+        <div class="botoes-backup">
+          <button class="btn outline" id="btn-backup">⬇️ Baixar backup</button>
+          <button class="btn outline" id="btn-restaurar">⬆️ Restaurar backup</button>
+        </div>
+        <input type="file" id="file-restaurar" accept="application/json" class="hidden" />
+        <button class="btn danger-ghost" id="btn-limpar">🗑️ Apagar tudo</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MENU INFERIOR -->
+  <nav class="tabbar">
+    <button class="tabbtn ativo" data-tab="hoje"><span>🏠</span>Hoje</button>
+    <button class="tabbtn" data-tab="corrida"><span>⚡</span>Corrida</button>
+    <button class="tabbtn" data-tab="historico"><span>📊</span>Histórico</button>
+    <button class="tabbtn" data-tab="config"><span>⚙️</span>Config</button>
+  </nav>
+
+  <!-- FAIXA DE TRIAL (topo) -->
+  <div id="faixa-trial" class="faixa-trial hidden"></div>
+
+  <!-- TELA DE BLOQUEIO (trial expirou) -->
+  <div id="tela-bloqueio" class="bloqueio hidden">
+    <div class="bloqueio-card">
+      <div class="lock">🔒</div>
+      <h2>Seu teste grátis acabou</h2>
+      <p class="sub">Você testou 7 dias. Para liberar o RodaCerto para sempre, faça um Pix único.</p>
+
+      <div class="preco">R$ 20<span>,00 • pagamento único</span></div>
+
+      <div class="pix-box">
+        <span class="pix-rotulo">Chave Pix</span>
+        <div class="pix-chave">
+          <strong id="pix-chave">sua-chave-pix@exemplo.com</strong>
+          <button class="btn-copiar" id="btn-copiar-pix">copiar</button>
+        </div>
+      </div>
+
+      <div class="passos">
+        <p><b>1.</b> Faça o Pix de R$ 20 na chave acima.</p>
+        <p><b>2.</b> Me mande o comprovante + o código abaixo pelo WhatsApp.</p>
+        <p><b>3.</b> Eu te devolvo o código de liberação. Cole aqui e pronto! ✅</p>
+      </div>
+
+      <div class="id-aparelho">
+        <span>Seu código de aparelho (envie pra mim):</span>
+        <div class="id-box"><strong id="id-aparelho">—</strong>
+          <button class="btn-copiar" id="btn-copiar-id">copiar</button>
+        </div>
+      </div>
+
+      <a id="link-whatsapp" class="btn whatsapp grande" target="_blank" rel="noopener">💬 Chamar no WhatsApp</a>
+
+      <div class="campo" style="margin-top:14px">
+        <label>Código de liberação (recebido de mim)</label>
+        <input type="text" id="in-codigo" placeholder="Cole o código aqui" autocapitalize="characters" />
+      </div>
+      <button class="btn primary grande" id="btn-liberar">Liberar app</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

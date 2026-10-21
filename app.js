@@ -655,9 +655,24 @@ $('#btn-copiar-id').addEventListener('click',()=>{
   navigator.clipboard?.writeText(idAparelho()).then(()=>toast('Código do aparelho copiado'));
 });
 
-// Registrar service worker (funciona offline / instalável)
+// Registrar service worker (funciona offline / instalável) e
+// recarregar automaticamente quando houver uma versão nova publicada.
 if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    // procura atualização sempre que o app abre
+    reg.update().catch(()=>{});
+    reg.addEventListener('updatefound',()=>{
+      const novo = reg.installing;
+      if(!novo) return;
+      novo.addEventListener('statechange',()=>{
+        // nova versão instalada e já existe uma controlando -> recarrega
+        if(novo.state==='installed' && navigator.serviceWorker.controller){
+          toast('Atualizando para a nova versão...');
+          setTimeout(()=>location.reload(), 800);
+        }
+      });
+    });
+  }).catch(()=>{});
 }
 
 // Primeira renderização

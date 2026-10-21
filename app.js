@@ -3,7 +3,7 @@
    Dados 100% no navegador (localStorage). Com backup em arquivo.
    ============================================================ */
 
-const APP_VERSAO = 'v11';  // marcador visível p/ sabermos qual build carregou
+const APP_VERSAO = 'v12';  // marcador visível p/ sabermos qual build carregou
 const STORE = 'rodacerto_v1';
 const LIC_STORE = 'rodacerto_lic_v1';
 
@@ -411,13 +411,14 @@ function renderCartoes(){
         <span class="x" data-delc="${c.id}">×</span>
       </div>
       <div class="total-cartao">A pagar este mês: ${reais(totalCartao)}</div>
-      <div class="parcelas">${parcelasHtml || '<span class="pinfo" style="padding:4px">Sem lançamentos. Adicione abaixo (ex: Manutenção, 3x).</span>'}</div>
+      <div class="parcelas">${parcelasHtml || '<span class="pinfo" style="padding:4px">Sem lançamentos. Adicione abaixo — parcelado (ex: Manutenção 3x) ou à vista (ex: Netflix, deixe o "x" vazio).</span>'}</div>
       <div class="add-parcela">
-        <input type="text" class="pnome-in" placeholder="Compra (ex: Manutenção)" data-cart="${c.id}" data-f="nome" />
-        <input type="number" class="pval-in" inputmode="decimal" placeholder="R$ parcela" data-cart="${c.id}" data-f="valor" />
+        <input type="text" class="pnome-in" placeholder="Compra (ex: Manutenção, Netflix)" data-cart="${c.id}" data-f="nome" />
+        <input type="number" class="pval-in" inputmode="decimal" placeholder="R$ da parcela" data-cart="${c.id}" data-f="valor" />
         <input type="number" class="pvezes-in" inputmode="numeric" placeholder="x" data-cart="${c.id}" data-f="vezes" />
         <button class="mini-add" data-addp="${c.id}">+</button>
       </div>
+      <p class="add-dica">Parcelas (deixe <b>vazio</b> ou <b>1</b> se for à vista / mensal). O valor é o de <b>cada parcela</b>.</p>
       <button class="btn-pago ${pagoMes?'pago':'pendente'}" data-pagar="${c.id}">
         ${pagoMes?'✅ Paguei este mês':'Marcar: paguei este mês'}
       </button>`;
@@ -679,7 +680,8 @@ $('#lista-cartoes').addEventListener('click',e=>{
     if(!nome || valor<=0){ toast('Preencha compra e valor da parcela'); return; }
     c.parcelas=c.parcelas||[];
     c.parcelas.push({id:uid(),nome,valor,total:vezes,restantes:vezes});
-    render(); toast(`${nome}: ${vezes}x de ${reais(valor)}`);
+    render();
+    toast(vezes>1 ? `${nome}: ${vezes}x de ${reais(valor)}` : `${nome}: ${reais(valor)} (à vista)`);
     return;
   }
 });

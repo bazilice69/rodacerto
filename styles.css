@@ -399,3 +399,7 @@ input::placeholder{color:#5b6b85}
 .magico-linha div{flex:1;background:rgba(0,0,0,.22);border-radius:12px;padding:10px}
 .magico-linha span{display:block;font-size:11px;color:rgba(255,255,255,.75);margin-bottom:3px}
 .magico-linha strong{font-size:18px;color:#fff}
+
+/* dica de lançamento de cartão */
+.add-dica{font-size:11px;color:var(--txt-fraco);line-height:1.45;margin-top:7px}
+.add-dica b{color:var(--txt)}

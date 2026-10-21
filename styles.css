@@ -382,3 +382,20 @@ input::placeholder{color:#5b6b85}
   background:rgba(13,148,136,.1);border:1px solid rgba(13,148,136,.2);
   padding:2px 7px;border-radius:999px;
 }
+
+/* ============ NÚMERO MÁGICO (tela de corrida) ============ */
+.magico{
+  background:
+    radial-gradient(130% 130% at 100% 0%, rgba(45,211,111,.28), transparent 55%),
+    linear-gradient(135deg,#0f766e,#0b5f58);
+  border:1px solid rgba(255,255,255,.12);
+  text-align:center;padding:22px 18px;
+}
+.magico-rotulo{font-size:12px;font-weight:800;letter-spacing:1px;color:rgba(255,255,255,.85)}
+.magico-valor{font-size:52px;font-weight:800;line-height:1;margin:8px 0 4px;letter-spacing:-1px;color:#fff}
+.magico-sub{font-size:13px;color:#d7fff4}
+.magico-sub b{color:#fff}
+.magico-linha{display:flex;gap:10px;margin-top:16px}
+.magico-linha div{flex:1;background:rgba(0,0,0,.22);border-radius:12px;padding:10px}
+.magico-linha span{display:block;font-size:11px;color:rgba(255,255,255,.75);margin-bottom:3px}
+.magico-linha strong{font-size:18px;color:#fff}

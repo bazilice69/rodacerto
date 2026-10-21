@@ -70,31 +70,45 @@
 
     <!-- ============ ABA CORRIDA (calculadora) ============ -->
     <section class="tab hidden" id="tab-corrida">
-      <div class="card">
-        <h2>Vale a pena essa corrida?</h2>
-        <p class="dica">Digite o valor e a distância que apareceram no app (Uber, 99...).</p>
+      <!-- NÚMERO MÁGICO: decore e decida no olho, sem digitar -->
+      <div class="card magico">
+        <span class="magico-rotulo">🧠 DECORE SEU NÚMERO</span>
+        <div class="magico-valor" id="magico-km">R$ —</div>
+        <span class="magico-sub">por km — só aceite corridas <b>acima</b> disso</span>
+        <div class="magico-linha">
+          <div><span>por hora, mire</span><strong id="magico-hora">R$ —</strong></div>
+          <div><span>por dia, mire</span><strong id="magico-dia">R$ —</strong></div>
+        </div>
+      </div>
 
-        <div class="campo">
-          <label>Valor da corrida (R$)</label>
-          <input type="number" id="c-valor" inputmode="decimal" placeholder="Ex: 14,90" />
+      <div class="card">
+        <h2>Calculadora de corrida</h2>
+        <p class="dica">Bateu uma corrida? Digite o que apareceu no app (Uber, 99...) e veja na hora.</p>
+
+        <div class="grid-2">
+          <div class="campo">
+            <label>Valor (R$)</label>
+            <input type="number" id="c-valor" inputmode="decimal" placeholder="14,90" />
+          </div>
+          <div class="campo">
+            <label>Distância (km)</label>
+            <input type="number" id="c-km" inputmode="decimal" placeholder="8" />
+          </div>
         </div>
-        <div class="campo">
-          <label>Distância do passageiro (km)</label>
-          <input type="number" id="c-km" inputmode="decimal" placeholder="Ex: 8" />
-        </div>
-        <div class="campo">
-          <label>Km até buscar o cliente (opcional)</label>
-          <input type="number" id="c-deslocamento" inputmode="decimal" placeholder="Ex: 3" />
+        <div class="grid-2">
+          <div class="campo">
+            <label>Km p/ buscar (opc.)</label>
+            <input type="number" id="c-deslocamento" inputmode="decimal" placeholder="3" />
+          </div>
+          <div class="campo">
+            <label>Tempo total (min, opc.)</label>
+            <input type="number" id="c-tempo" inputmode="numeric" placeholder="25" />
+          </div>
         </div>
 
         <button class="btn primary grande" id="btn-avaliar">Avaliar corrida</button>
 
         <div id="resultado-corrida" class="resultado hidden"></div>
-      </div>
-
-      <div class="card info">
-        <p>Seu mínimo aceitável é <strong id="corrida-minimo">R$ —</strong> por km rodado.</p>
-        <small>Esse número vem das suas despesas e do custo do carro (aba Config).</small>
       </div>
     </section>
 
@@ -220,6 +234,10 @@
         <div class="campo">
           <label>Km que você roda por dia (em média)</label>
           <input type="number" id="meta-km-dia" inputmode="decimal" placeholder="Ex: 200" />
+        </div>
+        <div class="campo">
+          <label>Horas que você trabalha por dia</label>
+          <input type="number" id="meta-horas-dia" inputmode="decimal" placeholder="Ex: 8" />
         </div>
         <div class="campo">
           <label>Quanto quer de lucro por mês (além das despesas)</label>

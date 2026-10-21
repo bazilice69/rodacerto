@@ -3,7 +3,7 @@
    Dados 100% no navegador (localStorage). Com backup em arquivo.
    ============================================================ */
 
-const APP_VERSAO = 'v10';  // marcador visível p/ sabermos qual build carregou
+const APP_VERSAO = 'v11';  // marcador visível p/ sabermos qual build carregou
 const STORE = 'rodacerto_v1';
 const LIC_STORE = 'rodacerto_lic_v1';
 
@@ -123,7 +123,7 @@ function estadoPadrao(){
     // cartões por pessoa, com parcelas e controle de pagamento do mês
     cartoes: [],           // [{id, dono, vencimento, parcelas:[{id,nome,valor,total,paga,restantes}], pago:{'YYYY-MM':true}}]
     carro: { combustivel:0, consumo:0, manutencao:0 },
-    meta: { dias:24, kmDia:200, lucro:0 },
+    meta: { dias:24, kmDia:200, horasDia:8, lucro:0 },
     ganhos: []             // [{id, data:'YYYY-MM-DD', valor}]
   };
 }
@@ -230,6 +230,11 @@ function minimoPorKm(){
   return custoPorKm() + (metaDiaria()/kmDia);
 }
 
+// Meta por HORA: quanto precisa faturar por hora trabalhada para bater a meta diária.
+// Usa as horas/dia que o motorista informa (campo novo); padrão 8h se não informado.
+function horasPorDia(){ return numero(dados.meta.horasDia)||8; }
+function metaPorHora(){ return metaDiaria()/horasPorDia(); }
+
 // ---------- GANHOS ----------
 function ganhosDe(dataISO){ return dados.ganhos.filter(g=>g.data===dataISO); }
 function totalDia(dataISO){ return ganhosDe(dataISO).reduce((s,g)=>s+numero(g.valor),0); }
@@ -323,6 +328,7 @@ function renderConfig(){
   // meta
   $('#meta-dias').value = dados.meta.dias||'';
   $('#meta-km-dia').value = dados.meta.kmDia||'';
+  $('#meta-horas-dia').value = dados.meta.horasDia||'';
   $('#meta-lucro').value = dados.meta.lucro||'';
 }
 
@@ -424,7 +430,13 @@ function renderCartoes(){
 }
 
 function renderCorridaInfo(){
-  $('#corrida-minimo').textContent = minimoPorKm()>0 ? reais(minimoPorKm()) : 'R$ —';
+  const mk = minimoPorKm();
+  const mh = metaPorHora();
+  const md = metaDiaria();
+  const elKm=$('#magico-km'), elH=$('#magico-hora'), elD=$('#magico-dia');
+  if(elKm) elKm.textContent = mk>0 ? reais(mk) : 'R$ —';
+  if(elH)  elH.textContent  = mh>0 ? reais(mh) : 'R$ —';
+  if(elD)  elD.textContent  = md>0 ? reais(md) : 'R$ —';
 }
 
 function renderHistorico(){
@@ -679,6 +691,7 @@ $('#btn-salvar-config').addEventListener('click',()=>{
   dados.carro.manutencao=numero($('#car-manutencao').value);
   dados.meta.dias=numero($('#meta-dias').value)||24;
   dados.meta.kmDia=numero($('#meta-km-dia').value)||200;
+  dados.meta.horasDia=numero($('#meta-horas-dia').value)||8;
   dados.meta.lucro=numero($('#meta-lucro').value);
   render();
   toast(`Pronto! Sua meta é ${reais(metaDiaria())}/dia 🎯`);
@@ -689,6 +702,7 @@ $('#btn-avaliar').addEventListener('click',()=>{
   const valor=numero($('#c-valor').value);
   const km=numero($('#c-km').value);
   const desloc=numero($('#c-deslocamento').value);
+  const tempoMin=numero($('#c-tempo').value);   // minutos (opcional)
   const box=$('#resultado-corrida');
 
   if(valor<=0 || km<=0){ toast('Preencha valor e distância'); return; }
@@ -699,17 +713,35 @@ $('#btn-avaliar').addEventListener('click',()=>{
   const custo = custoPorKm() * kmTotal;        // quanto essa corrida custa de carro
   const lucroEstimado = valor - custo;         // sobra depois do custo do carro
 
+  // R$/hora e lucro/hora (se o motorista informou o tempo)
+  let reaisPorHora=0, lucroPorHora=0;
+  if(tempoMin>0){
+    reaisPorHora = valor / (tempoMin/60);
+    lucroPorHora = lucroEstimado / (tempoMin/60);
+  }
+
+  // Veredito: combina km (sempre) com hora (se tiver tempo).
+  // A corrida precisa passar no km E, se houver tempo, também na meta/hora.
+  const mh = metaPorHora();
   let classe, titulo;
   if(minimo<=0){
-    // sem config: usa referência simples
     classe = reaisPorKm>=1.5 ? 'bom' : (reaisPorKm>=1 ? 'medio' : 'ruim');
     titulo = classe==='bom'?'✅ Parece boa':'⚠️ Configure sua meta';
-  }else if(reaisPorKm >= minimo){
-    classe='bom'; titulo='✅ VALE A PENA';
-  }else if(reaisPorKm >= minimo*0.85){
-    classe='medio'; titulo='⚠️ EM CIMA DO LIMITE';
   }else{
-    classe='ruim'; titulo='❌ RECUSE';
+    const passaKm = reaisPorKm >= minimo;
+    const quaseKm = reaisPorKm >= minimo*0.85;
+    const passaHora = (tempoMin<=0) ? true : (reaisPorHora >= mh);
+    if(passaKm && passaHora){ classe='bom'; titulo='✅ VALE A PENA'; }
+    else if((quaseKm && passaHora) || (passaKm && !passaHora)){ classe='medio'; titulo='⚠️ EM CIMA DO LIMITE'; }
+    else { classe='ruim'; titulo='❌ RECUSE'; }
+  }
+
+  let linhasHora = '';
+  if(tempoMin>0){
+    linhasHora = `
+      <div class="linha-res"><span>Essa corrida paga</span><b>${reais(reaisPorHora)} / hora</b></div>
+      <div class="linha-res"><span>Sua meta por hora</span><b>${mh>0?reais(mh):'defina na config'} / hora</b></div>
+      <div class="linha-res"><span>Lucro por hora</span><b style="color:${lucroPorHora>=0?'#2dd36f':'#f4544c'}">${reais(lucroPorHora)} / hora</b></div>`;
   }
 
   box.className='resultado '+classe;
@@ -718,9 +750,10 @@ $('#btn-avaliar').addEventListener('click',()=>{
     <div class="detalhe">
       <div class="linha-res"><span>Essa corrida paga</span><b>${reais(reaisPorKm)} / km</b></div>
       <div class="linha-res"><span>Seu mínimo</span><b>${minimo>0?reais(minimo):'defina na config'} / km</b></div>
+      ${linhasHora}
       <div class="linha-res"><span>Km rodado (c/ deslocamento)</span><b>${kmTotal.toLocaleString('pt-BR')} km</b></div>
       <div class="linha-res"><span>Custo do carro</span><b>${reais(custo)}</b></div>
-      <div class="linha-res"><span>Sobra (depois do carro)</span><b style="color:${lucroEstimado>=0?'#22c55e':'#ef4444'}">${reais(lucroEstimado)}</b></div>
+      <div class="linha-res"><span>Sobra (depois do carro)</span><b style="color:${lucroEstimado>=0?'#2dd36f':'#f4544c'}">${reais(lucroEstimado)}</b></div>
     </div>`;
   box.classList.remove('hidden');
 });

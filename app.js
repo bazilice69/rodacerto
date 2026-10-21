@@ -127,6 +127,29 @@ function estadoPadrao(){
   };
 }
 
+// Frases motivacionais — mostradas aleatoriamente na tela inicial.
+// Escritas pela experiência real de quem dirige. Dão força de verdade.
+const FRASES = [
+  "Nem toda corrida vai valer a pena. Nem todo passageiro vai agradecer. Nem todo dia vai fechar no lucro. Mas enquanto você estiver no volante, ainda existe uma próxima corrida. Não desista no meio do caminho.",
+  "Tem dia que a gente liga o aplicativo sem saber como vai pagar as contas. Mas desliga sabendo que, pelo menos hoje, a gente tentou. E isso também é coragem.",
+  "Motorista de app não dirige só um carro. Dirige sonhos, boletos, planos e a esperança de dias melhores. Então segura firme esse volante. Essa fase não define o seu destino.",
+  "Às vezes Deus não abre uma estrada nova. Ele simplesmente te dá força para continuar dirigindo pela estrada que você já está. E talvez a próxima corrida seja justamente a que você precisava.",
+  "Você não está rodando à toa. Cada quilômetro tem um propósito: uma conta paga, uma comida em casa, um filho sorrindo, um sonho sendo mantido vivo. Continue.",
+  "Tem passageiro que cancela, corrida que dá prejuízo e dia que parece que tudo deu errado. Mas uma corrida ruim não pode fazer você acreditar que o dia inteiro será ruim.",
+  "\u201CPai, se for para acontecer, me dê forças para continuar.\u201D E talvez a resposta venha de um jeito simples: \u201CSó aceita a próxima corrida.\u201D",
+  "Você pode estar cansado. Pode estar preocupado. Pode até estar sem saber como vai terminar o mês. Mas lembre: você já sobreviveu a dias que um dia também pareciam impossíveis.",
+  "Não tenha vergonha de estar dirigindo. Vergonha seria desistir de lutar pela sua família. Trabalho honesto, por mais difícil que seja, continua sendo trabalho digno.",
+  "Hoje pode estar difícil. Amanhã talvez também esteja. Mas não entregue seu futuro por causa de um dia ruim. Abasteça, respire, ligue o app e continue.",
+  "Tem gente que só vê um motorista. Mas dentro daquele carro existe um pai, um marido, uma mãe, um filho, alguém pagando dívida, construindo uma casa ou tentando recomeçar. Respeite sua própria caminhada.",
+  "A vida de motorista de app é uma mistura de trânsito, ansiedade, combustível e boletos. 😂 Mas também é liberdade, luta e oportunidade. Enquanto houver estrada, ainda há possibilidade de mudar a história.",
+  "Você não precisa vencer o mês inteiro hoje. Vença apenas a próxima corrida. Depois a próxima. E quando perceber, você chegou mais longe do que imaginava.",
+  "Quando o dinheiro estiver curto, a gasolina cara e a cabeça cheia, lembre-se: você não precisa ter todas as respostas para continuar. Só precisa dar o próximo passo.",
+  "Talvez você esteja rodando cansado sem perceber que está mais perto de conseguir do que imagina. Não pare na corrida anterior ao seu melhor dia.",
+  "\u201CTudo posso naquele que me fortalece.\u201D Às vezes essa força não vem como milagre. Vem como coragem para levantar cedo, entrar no carro, ligar o aplicativo e tentar mais uma vez.",
+  "Tem dia que você pede a Deus uma saída e parece que nada acontece. Então você entra no carro, liga o aplicativo e começa a rodar. Talvez aquela seja a sua resposta: \u201CEu não vou fazer por você, mas vou te dar força para você continuar.\u201D",
+  "Não desista porque hoje foi ruim. Você ainda não sabe o que pode acontecer na próxima corrida. Enquanto houver estrada, haverá esperança. 🚗🙏"
+];
+
 // Sugestões prontas por tipo (o motorista toca e já adiciona)
 const SUGESTOES = {
   fixa:    ['Aluguel','Mensalidade do carro','Internet','Escola das crianças','Seguro do carro','Plano de saúde'],
@@ -220,7 +243,19 @@ function render(){
   renderConfig();
   renderCorridaInfo();
   renderHistorico();
+  renderAgenda();
   salvar();
+}
+
+// Frase motivacional aleatória (evita repetir a última)
+let ultimaFrase = -1;
+function novaFrase(){
+  let i;
+  do { i = Math.floor(Math.random()*FRASES.length); }
+  while(FRASES.length>1 && i===ultimaFrase);
+  ultimaFrase = i;
+  const el = $('#frase-texto');
+  if(el){ el.style.opacity=0; setTimeout(()=>{ el.textContent=FRASES[i]; el.style.opacity=1; }, 150); }
 }
 
 function renderHoje(){
@@ -386,38 +421,123 @@ function renderCorridaInfo(){
 }
 
 function renderHistorico(){
+  // resumo do mês VISUALIZADO no calendário (não necessariamente o atual)
+  const ym = calYM();                 // 'YYYY-MM' em exibição
   const metaM = metaMensal();
-  const ganhoM = totalMes();
-  $('#mes-ganho').textContent = reais(ganhoM);
+  const ganhoMes = dados.ganhos
+    .filter(g=>g.data.startsWith(ym))
+    .reduce((s,g)=>s+numero(g.valor),0);
+  $('#mes-ganho').textContent = reais(ganhoMes);
   $('#mes-meta').textContent = reais(metaM);
-  const pct = metaM>0?Math.min(100,(ganhoM/metaM)*100):0;
+  const pct = metaM>0?Math.min(100,(ganhoMes/metaM)*100):0;
   $('#barra-mes').style.width = pct+'%';
-  const faltaM = Math.max(0, metaM-ganhoM);
+  const faltaM = Math.max(0, metaM-ganhoMes);
   $('#mes-falta').textContent = metaM<=0 ? 'Configure sua meta na aba ⚙️.'
-    : (faltaM<=0 ? '🎉 Meta do mês batida!' : `Faltam ${reais(faltaM)} este mês.`);
+    : (faltaM<=0 ? '🎉 Meta do mês batida!' : `Faltam ${reais(faltaM)} para a meta deste mês.`);
+}
 
-  // agrupa por dia
-  const porDia={};
-  dados.ganhos.forEach(g=>{ porDia[g.data]=(porDia[g.data]||0)+numero(g.valor); });
-  const dias=Object.keys(porDia).sort().reverse();
-  const cont=$('#lista-historico');
-  if(dias.length===0){ cont.innerHTML='<p class="vazio">Nenhum ganho registrado ainda.</p>'; return; }
-  cont.innerHTML='';
-  const metaD=metaDiaria();
-  dias.forEach(iso=>{
-    const total=porDia[iso];
-    const qtd=dados.ganhos.filter(g=>g.data===iso).length;
-    const d=new Date(iso+'T12:00:00');
-    const pctd=metaD>0?Math.min(100,(total/metaD)*100):0;
-    const bateu = metaD>0 && total>=metaD;
-    const el=document.createElement('div'); el.className='hist-dia';
-    el.innerHTML=`<div class="topo">
-        <span class="data">${d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})} ${bateu?'✅':''}</span>
-        <span class="total">${reais(total)}</span>
-      </div>
-      <span class="sub">${qtd} corrida(s) • meta do dia ${reais(metaD)}</span>
-      <div class="mini-barra"><div style="width:${pctd}%"></div></div>`;
-    cont.appendChild(el);
+/* ============================================================
+   AGENDA / CALENDÁRIO
+   ============================================================ */
+let calData = new Date();                 // mês em exibição
+let diaSelecionado = hojeISO();            // dia aberto no detalhe
+
+function calYM(){
+  return calData.getFullYear()+'-'+String(calData.getMonth()+1).padStart(2,'0');
+}
+function isoDe(ano,mes,dia){
+  return ano+'-'+String(mes+1).padStart(2,'0')+'-'+String(dia).padStart(2,'0');
+}
+
+function renderAgenda(){
+  const ano = calData.getFullYear(), mes = calData.getMonth();
+  const nomeMes = calData.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  const tit = $('#cal-titulo'); if(tit) tit.textContent = nomeMes;
+
+  const grade = $('#cal-grade'); if(!grade) return;
+  grade.innerHTML='';
+
+  const primeiroDiaSemana = new Date(ano,mes,1).getDay(); // 0=domingo
+  const diasNoMes = new Date(ano,mes+1,0).getDate();
+  const metaD = metaDiaria();
+
+  // células vazias antes do dia 1
+  for(let i=0;i<primeiroDiaSemana;i++){
+    const c=document.createElement('div'); c.className='cal-dia vazio-cel'; grade.appendChild(c);
+  }
+  // dias do mês
+  for(let dia=1; dia<=diasNoMes; dia++){
+    const iso = isoDe(ano,mes,dia);
+    const total = totalDia(iso);
+    const c=document.createElement('div');
+    c.className='cal-dia';
+    if(iso===hojeISO()) c.classList.add('hoje');
+    if(iso===diaSelecionado) c.classList.add('sel');
+    c.dataset.dia = iso;
+
+    let dot='';
+    if(total>0){
+      const cor = (metaD>0 && total>=metaD) ? 'verde' : 'amarelo';
+      dot = `<span class="dot ${cor}"></span>`;
+    }
+    c.innerHTML = `<span>${dia}</span>${dot}`;
+    grade.appendChild(c);
+  }
+
+  renderDiaDetalhe();
+}
+
+function renderDiaDetalhe(){
+  const cont=$('#dia-detalhe'); if(!cont) return;
+  const iso = diaSelecionado;
+  const d = new Date(iso+'T12:00:00');
+  const titulo = $('#dia-titulo');
+  const ehHoje = iso===hojeISO();
+  if(titulo) titulo.textContent = (ehHoje?'Hoje — ':'') + d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+
+  const total = totalDia(iso);
+  const qtd = ganhosDe(iso).length;
+  const metaD = metaDiaria();
+  const bateu = metaD>0 && total>=metaD;
+
+  let ganhosHtml = ganhosDe(iso).slice().reverse().map(g=>
+    `<div class="item"><span class="nome">⚡ corrida</span>
+      <span><span class="val">${reais(g.valor)}</span>
+      <span class="x" data-delg="${g.id}">×</span></span></div>`
+  ).join('');
+
+  cont.innerHTML = `
+    <div class="dia-resumo">
+      <div class="box"><span>Ganho no dia</span><strong class="verde">${reais(total)}</strong></div>
+      <div class="box"><span>Corridas</span><strong>${qtd}</strong></div>
+      <div class="box"><span>Meta do dia</span><strong>${metaD>0?reais(metaD):'—'}</strong></div>
+    </div>
+    ${metaD>0 ? `<div class="meta-falta" style="color:${bateu?'#2dd36f':'#8fa0bf'}">${bateu?'🎉 Meta batida neste dia!':'Faltou '+reais(Math.max(0,metaD-total))+' para a meta deste dia.'}</div>`:''}
+    <div class="dia-add">
+      <input type="number" id="dia-valor" inputmode="decimal" placeholder="Lançar ganho (R$)" />
+      <button class="btn primary" id="dia-add-btn">+ Lançar</button>
+    </div>
+    <div class="dia-ganhos">${ganhosHtml || '<p class="vazio" style="padding:8px">Nenhum ganho neste dia.</p>'}</div>
+  `;
+
+  // liga os eventos do detalhe (recriados a cada render)
+  const addBtn = $('#dia-add-btn');
+  if(addBtn){
+    addBtn.onclick = ()=>{
+      const v = numero($('#dia-valor').value);
+      if(v<=0){ toast('Digite um valor válido'); return; }
+      dados.ganhos.push({id:uid(), data:iso, valor:v});
+      render(); toast('Ganho lançado! 💰');
+    };
+  }
+  const valInput = $('#dia-valor');
+  if(valInput) valInput.onkeydown = e=>{ if(e.key==='Enter') addBtn.click(); };
+
+  cont.querySelectorAll('[data-delg]').forEach(x=>{
+    x.onclick = ()=>{
+      dados.ganhos = dados.ganhos.filter(g=>g.id!==x.dataset.delg);
+      render();
+    };
   });
 }
 
@@ -675,6 +795,22 @@ if('serviceWorker' in navigator){
   }).catch(()=>{});
 }
 
+// Botão "outra frase"
+$('#btn-frase').addEventListener('click', novaFrase);
+
+// Navegação do calendário
+$('#cal-prev').addEventListener('click',()=>{ calData.setMonth(calData.getMonth()-1); renderAgenda(); renderHistorico(); });
+$('#cal-next').addEventListener('click',()=>{ calData.setMonth(calData.getMonth()+1); renderAgenda(); renderHistorico(); });
+
+// Clicar num dia do calendário
+$('#cal-grade').addEventListener('click',e=>{
+  const cel = e.target.closest('.cal-dia');
+  if(!cel || !cel.dataset.dia) return;
+  diaSelecionado = cel.dataset.dia;
+  renderAgenda();
+});
+
 // Primeira renderização
 render();
+novaFrase();
 checarLicenca();

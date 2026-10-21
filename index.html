@@ -33,6 +33,13 @@
 
     <!-- ============ ABA HOJE ============ -->
     <section class="tab" id="tab-hoje">
+      <!-- frase motivacional (muda a cada abertura) -->
+      <div class="card frase-card" id="card-frase">
+        <span class="frase-aspas">"</span>
+        <p id="frase-texto"></p>
+        <button class="frase-nova" id="btn-frase" aria-label="Outra frase">🔄 outra frase</button>
+      </div>
+
       <div class="card destaque" id="card-meta">
         <div class="meta-topo">
           <span class="rotulo">Meta de hoje</span>
@@ -119,10 +126,29 @@
         <div class="meta-falta" id="mes-falta"></div>
       </div>
 
+      <!-- CALENDÁRIO / AGENDA -->
       <div class="card">
-        <h2>Dia a dia</h2>
-        <div id="lista-historico" class="lista-historico">
-          <p class="vazio">Nenhum ganho registrado ainda.</p>
+        <div class="cal-topo">
+          <button class="cal-nav" id="cal-prev" aria-label="Mês anterior">‹</button>
+          <h2 id="cal-titulo">—</h2>
+          <button class="cal-nav" id="cal-next" aria-label="Próximo mês">›</button>
+        </div>
+        <div class="cal-semana">
+          <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+        </div>
+        <div class="cal-grade" id="cal-grade"></div>
+        <div class="cal-legenda">
+          <span><i class="dot verde"></i> bateu a meta</span>
+          <span><i class="dot amarelo"></i> ganhou algo</span>
+          <span><i class="dot cinza"></i> sem registro</span>
+        </div>
+      </div>
+
+      <!-- DETALHE DO DIA SELECIONADO -->
+      <div class="card" id="card-dia">
+        <h2 id="dia-titulo">Toque num dia</h2>
+        <div id="dia-detalhe">
+          <p class="vazio">Toque num dia do calendário para ver e lançar o que foi feito.</p>
         </div>
       </div>
     </section>
@@ -230,7 +256,7 @@
   <nav class="tabbar">
     <button class="tabbtn ativo" data-tab="hoje"><span>🏠</span>Hoje</button>
     <button class="tabbtn" data-tab="corrida"><span>⚡</span>Corrida</button>
-    <button class="tabbtn" data-tab="historico"><span>📊</span>Histórico</button>
+    <button class="tabbtn" data-tab="historico"><span>📅</span>Agenda</button>
     <button class="tabbtn" data-tab="config"><span>⚙️</span>Config</button>
   </nav>
 

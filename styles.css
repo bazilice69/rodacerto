@@ -279,3 +279,68 @@ input::placeholder{color:#5b6b85}
 .btn-pago.pendente{background:rgba(234,179,8,.18);color:var(--amarelo);border:1px solid var(--amarelo)}
 .btn-pago.pago{background:rgba(34,197,94,.18);color:var(--verde);border:1px solid var(--verde)}
 .mini-add{background:var(--primaria);color:#fff;border:none;border-radius:8px;padding:0 14px;font-weight:800;cursor:pointer}
+
+/* ============ FRASE MOTIVACIONAL ============ */
+.frase-card{
+  position:relative;
+  background:
+    radial-gradient(120% 140% at 0% 0%, rgba(23,195,178,.18), transparent 60%),
+    linear-gradient(160deg,#16233d,#101a2e);
+  border:1px solid var(--linha);
+  padding:22px 20px 16px;
+  overflow:hidden;
+}
+.frase-aspas{
+  position:absolute;top:-8px;left:12px;
+  font-size:70px;font-weight:800;color:rgba(23,195,178,.22);
+  font-family:Georgia,serif;line-height:1;
+}
+#frase-texto{
+  position:relative;z-index:1;
+  font-size:15px;line-height:1.65;color:#dfe7f5;font-weight:500;
+  font-style:italic;
+  transition:opacity .15s ease;
+}
+.frase-nova{
+  margin-top:14px;background:rgba(23,195,178,.12);color:var(--primaria);
+  border:1px solid rgba(23,195,178,.35);border-radius:999px;
+  padding:7px 14px;font-size:12.5px;font-weight:600;cursor:pointer;
+}
+.frase-nova:active{transform:scale(.96)}
+
+/* ============ CALENDÁRIO / AGENDA ============ */
+.cal-topo{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-topo h2{font-size:16px;text-transform:capitalize}
+.cal-nav{
+  background:var(--card2);border:1px solid var(--linha);color:var(--txt);
+  width:38px;height:38px;border-radius:10px;font-size:22px;cursor:pointer;line-height:1;
+}
+.cal-nav:active{background:var(--primaria);color:#fff}
+.cal-semana{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px}
+.cal-semana span{text-align:center;font-size:11px;color:var(--txt-fraco);font-weight:700}
+.cal-grade{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-dia{
+  aspect-ratio:1/1;border-radius:10px;background:var(--card2);border:1px solid transparent;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  font-size:13px;cursor:pointer;color:var(--txt);position:relative;
+}
+.cal-dia.vazio-cel{background:transparent;cursor:default}
+.cal-dia.hoje{border-color:var(--primaria)}
+.cal-dia.sel{background:var(--primaria);color:#fff;font-weight:800}
+.cal-dia .dot{width:6px;height:6px;border-radius:50%}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;vertical-align:middle}
+.dot.verde{background:var(--verde)}
+.dot.amarelo{background:var(--amarelo)}
+.dot.cinza{background:var(--linha)}
+.cal-legenda{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;font-size:11.5px;color:var(--txt-fraco)}
+.cal-legenda span{display:flex;align-items:center;gap:5px}
+
+/* DETALHE DO DIA */
+#dia-titulo{text-transform:capitalize}
+.dia-resumo{display:flex;gap:10px;margin:10px 0}
+.dia-resumo .box{flex:1;background:var(--card2);border:1px solid var(--linha);border-radius:12px;padding:12px;text-align:center}
+.dia-resumo .box span{display:block;font-size:11px;color:var(--txt-fraco);margin-bottom:4px}
+.dia-resumo .box strong{font-size:18px}
+.dia-add{display:flex;gap:8px;margin:12px 0}
+.dia-add input{flex:1}
+.dia-ganhos{display:flex;flex-direction:column;gap:7px;margin-top:8px}

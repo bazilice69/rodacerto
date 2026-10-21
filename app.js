@@ -3,7 +3,7 @@
    Dados 100% no navegador (localStorage). Com backup em arquivo.
    ============================================================ */
 
-const APP_VERSAO = 'v7';   // marcador visível p/ sabermos qual build carregou
+const APP_VERSAO = 'v8';   // marcador visível p/ sabermos qual build carregou
 const STORE = 'rodacerto_v1';
 const LIC_STORE = 'rodacerto_lic_v1';
 
@@ -246,6 +246,7 @@ function render(){
   try{ renderCorridaInfo(); }catch(e){ console.error('renderCorridaInfo',e); }
   try{ renderHistorico(); }catch(e){ console.error('renderHistorico',e); }
   try{ renderAgenda(); }catch(e){ console.error('renderAgenda',e); }
+  try{ renderBackup(); }catch(e){ console.error('renderBackup',e); }
   salvar();
 }
 
@@ -727,7 +728,27 @@ $('#btn-avaliar').addEventListener('click',()=>{
 /* ============================================================
    BACKUP / RESTAURAR / LIMPAR
    ============================================================ */
-$('#btn-backup').addEventListener('click',()=>{
+// ---- Controle de backup (para proteger contra perda de dados) ----
+const BK_STORE = 'rodacerto_backup_v1';
+function bkInfo(){
+  try{ return JSON.parse(localStorage.getItem(BK_STORE)) || {}; }catch(e){ return {}; }
+}
+function bkMarcar(){ const i=bkInfo(); i.ultimo=Date.now(); localStorage.setItem(BK_STORE, JSON.stringify(i)); }
+
+// tem dados que valem a pena proteger?
+function temDadosRelevantes(){
+  return (dados.ganhos && dados.ganhos.length>0) ||
+         (dados.despesas && dados.despesas.length>0) ||
+         (dados.cartoes && dados.cartoes.length>0);
+}
+// dias desde o último backup (ou null se nunca fez)
+function diasDesdeBackup(){
+  const u = bkInfo().ultimo;
+  if(!u) return null;
+  return Math.floor((Date.now()-u)/(1000*60*60*24));
+}
+
+function fazerBackup(){
   const blob=new Blob([JSON.stringify(dados,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -735,8 +756,55 @@ $('#btn-backup').addEventListener('click',()=>{
   a.download='rodacerto-backup-'+hojeISO()+'.json';
   a.click();
   URL.revokeObjectURL(url);
-  toast('Backup baixado! Salve na sua nuvem ☁️');
+  bkMarcar();
+  render();
+  toast('Backup salvo! Guarde o arquivo na sua nuvem ☁️');
+}
+
+$('#btn-backup').addEventListener('click', fazerBackup);
+
+// lembrete flutuante do topo
+$('#faixa-backup-btn').addEventListener('click', fazerBackup);
+$('#faixa-backup-x').addEventListener('click',()=>{
+  // dispensa o lembrete só por hoje
+  const info = bkInfo(); info.dispensado = hojeISO();
+  localStorage.setItem(BK_STORE, JSON.stringify(info));
+  $('#faixa-backup').classList.add('hidden');
 });
+
+// atualiza o status do backup na tela de Config e o lembrete do topo
+function renderBackup(){
+  const status = $('#backup-status');
+  const dias = diasDesdeBackup();
+  if(status){
+    if(dias===null){
+      status.className='backup-status alerta';
+      status.textContent = temDadosRelevantes()
+        ? '⚠️ Você ainda NÃO fez nenhum backup.'
+        : 'Nenhum backup feito ainda.';
+    }else if(dias===0){
+      status.className='backup-status ok';
+      status.textContent = '✅ Último backup: hoje.';
+    }else{
+      status.className = dias>=7 ? 'backup-status alerta' : 'backup-status';
+      status.textContent = `Último backup: há ${dias} dia${dias>1?'s':''}.`;
+    }
+  }
+
+  // lembrete flutuante no topo
+  const faixa = $('#faixa-backup');
+  if(!faixa) return;
+  if(bkInfo().dispensado===hojeISO()){ faixa.classList.add('hidden'); return; }
+  const precisa = temDadosRelevantes() && (dias===null || dias>=3);
+  if(precisa){
+    $('#faixa-backup-texto').textContent = dias===null
+      ? '⚠️ Você tem dados salvos só neste celular. Faça um backup para não perder!'
+      : `⚠️ Faz ${dias} dias sem backup. Salve seus dados para não perder!`;
+    faixa.classList.remove('hidden');
+  }else{
+    faixa.classList.add('hidden');
+  }
+}
 
 $('#btn-restaurar').addEventListener('click',()=>$('#file-restaurar').click());
 $('#file-restaurar').addEventListener('change',e=>{
@@ -746,6 +814,7 @@ $('#file-restaurar').addEventListener('change',e=>{
     try{
       const obj=JSON.parse(reader.result);
       dados=Object.assign(estadoPadrao(),obj);
+      bkMarcar();
       render();
       toast('Backup restaurado! ✅');
     }catch(err){ toast('Arquivo inválido ❌'); }
@@ -781,30 +850,15 @@ $('#btn-copiar-id').addEventListener('click',()=>{
   navigator.clipboard?.writeText(idAparelho()).then(()=>toast('Código do aparelho copiado'));
 });
 
-// Registrar service worker (funciona offline / instalável) e
-// recarregar automaticamente quando houver uma versão nova publicada.
+// Service worker DESLIGADO nesta fase (evita cache de versão velha).
+// Se houver algum SW antigo registrado no aparelho, remove e limpa os caches.
 if('serviceWorker' in navigator){
-  let recarregou = false;
-  // quando o SW que controla a página mudar (nova versão assumiu), recarrega 1x
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{
-    if(recarregou) return;
-    recarregou = true;
-    location.reload();
-  });
-
-  navigator.serviceWorker.register('sw.js').then(reg=>{
-    reg.update().catch(()=>{});
-    reg.addEventListener('updatefound',()=>{
-      const novo = reg.installing;
-      if(!novo) return;
-      novo.addEventListener('statechange',()=>{
-        if(novo.state==='installed' && navigator.serviceWorker.controller){
-          toast('Atualizando...');
-          // o novo SW já chamou skipWaiting; o controllerchange acima recarrega
-        }
-      });
-    });
+  navigator.serviceWorker.getRegistrations().then(regs=>{
+    regs.forEach(r=>r.unregister());
   }).catch(()=>{});
+  if(window.caches && caches.keys){
+    caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))).catch(()=>{});
+  }
 }
 
 // Botão "outra frase"

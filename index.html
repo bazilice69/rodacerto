@@ -238,11 +238,16 @@
         <button class="btn primary grande" id="btn-salvar-config">Salvar e calcular</button>
       </div>
 
-      <div class="card">
-        <h2>💾 Backup</h2>
-        <p class="dica">Seus dados ficam só no seu celular. Faça backup para não perder.</p>
-        <div class="botoes-backup">
-          <button class="btn outline" id="btn-backup">⬇️ Baixar backup</button>
+      <div class="card" id="card-backup">
+        <h2>💾 Backup dos seus dados</h2>
+        <div class="aviso-dados" id="aviso-dados">
+          ⚠️ <b>Atenção:</b> seus dados ficam só neste celular. Se você limpar o navegador,
+          trocar de aparelho ou desinstalar, <b>perde tudo</b>. Faça backup e guarde o arquivo
+          na sua nuvem (Google Drive, WhatsApp pra você mesmo, e-mail...).
+        </div>
+        <div class="backup-status" id="backup-status"></div>
+        <button class="btn primary grande" id="btn-backup">⬇️ Fazer backup agora</button>
+        <div class="botoes-backup" style="margin-top:10px">
           <button class="btn outline" id="btn-restaurar">⬆️ Restaurar backup</button>
         </div>
         <input type="file" id="file-restaurar" accept="application/json" class="hidden" />
@@ -262,6 +267,13 @@
 
   <!-- FAIXA DE TRIAL (topo) -->
   <div id="faixa-trial" class="faixa-trial hidden"></div>
+
+  <!-- LEMBRETE DE BACKUP (aparece quando faz tempo que não salva) -->
+  <div id="faixa-backup" class="faixa-backup hidden">
+    <span id="faixa-backup-texto">Faça um backup para não perder seus dados.</span>
+    <button id="faixa-backup-btn">Backup</button>
+    <button id="faixa-backup-x" aria-label="fechar">✕</button>
+  </div>
 
   <!-- TELA DE BLOQUEIO (trial expirou) -->
   <div id="tela-bloqueio" class="bloqueio hidden">
